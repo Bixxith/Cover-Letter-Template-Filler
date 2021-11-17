@@ -4,7 +4,7 @@ import comtypes.client
 from tkinter import *
 from datetime import date
 import subprocess
-import webbrowser
+
 
 class YourName():
     def __init__(self): 
@@ -171,8 +171,8 @@ class CLGenerator():
     
     # Clears the entry fields    
     def reload(self):
-        self.positionEntry.delete(0,'end')
-        self.companyNameEntry.delete(0,'end')
+        self.mainWindow.destroy()
+        CLGenerator()
     
     def openFolder(self):
         subprocess.Popen(r'explorer /select, %s' % self.coverLetterDatedDirectory)
