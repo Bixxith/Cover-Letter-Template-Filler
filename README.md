@@ -1,7 +1,7 @@
 # Cover Letter Auto Filler
  A Python app to automate cover letter creation based on templates.
 
-##How it works:
+## How it works:
 
 First, you need to create a template cover letter named "template.docx" and ensure that it is in the same directory as the script.
 
