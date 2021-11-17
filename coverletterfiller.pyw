@@ -3,7 +3,8 @@ import os
 import comtypes.client
 from tkinter import *
 from datetime import date
-
+import subprocess
+import webbrowser
 
 class YourName():
     def __init__(self): 
@@ -66,7 +67,6 @@ class CLGenerator():
         self.cld2 = self.dateAssign.strftime("%Y-%m-%d")
         self.coverLetterDatedDirectory = os.path.join(self.coverLetterDirectory, self.cld2)
         self.yourName = ""
-        self.lblVariable = ""
         self.templateInserts = {"DATE":"", "POSITION":"", "COMPANY":"", "YOURNAME":""}
         self.templateDoc = docx.Document("template.docx")
 
@@ -79,7 +79,7 @@ class CLGenerator():
         self.positionEntry = Entry(self.mainWindow)
         self.subBtn = Button(self.mainWindow, text="Submit", command=self.submit)
         self.invsLbl = Label(self.mainWindow)
-        self.invsLbl1 = Label(self.mainWindow, textvariable=self.lblVariable)
+        self.opnBtn1 = Button(self.mainWindow, text="Open Folder", command=self.openFolder)
         self.renameBtn = Button(self.mainWindow, text="Change Name", command=self.changeName)
         
         
@@ -89,7 +89,7 @@ class CLGenerator():
         self.positionEntry.pack()
         self.invsLbl.pack()
         self.subBtn.pack()
-        self.invsLbl1.pack()
+        self.opnBtn1.pack()
         self.renameBtn.pack()
         
         #Main loop
@@ -163,8 +163,6 @@ class CLGenerator():
         tempDoc.SaveAs(pdfFile, FileFormat=wdFormatPDF)
         tempDoc.Close()
         os.remove(tempFile)
-        
-        self.lblVariable = pdfFile
         word.Quit()
     
     # Prompt to change name
@@ -175,7 +173,11 @@ class CLGenerator():
     def reload(self):
         self.positionEntry.delete(0,'end')
         self.companyNameEntry.delete(0,'end')
+    
+    def openFolder(self):
+        subprocess.Popen(r'explorer /select, %s' % self.coverLetterDatedDirectory)
 
+        
 # Checks to see if name.txt is set and starts accordingly
 if __name__ == "__main__":    
     if not os.path.join(os.getcwd(), "name.txt"):
