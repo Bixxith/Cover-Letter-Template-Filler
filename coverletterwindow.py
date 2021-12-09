@@ -5,7 +5,7 @@ from datetime import date
 import os
 import docx
 import comtypes.client
-import subprocess
+
 
 
 class CoverLetterWindow(MainWindow):
