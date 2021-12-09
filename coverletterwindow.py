@@ -57,11 +57,16 @@ class CoverLetterWindow(MainWindow):
     def _openFolder(self):
         dateAssign = date.today()
         todayFolderFormat = dateAssign.strftime("%Y-%m-%d")
-
         coverLetterDirectory = os.path.join(os.getcwd(), "Cover Letters")
         coverLetterDatedDirectory = os.path.join(coverLetterDirectory, todayFolderFormat)
+        command = 'explorer.exe '
         
-        subprocess.Popen(r'explorer /select, %s' % coverLetterDatedDirectory)
+        if os.path.isdir(coverLetterDatedDirectory):
+            command += coverLetterDatedDirectory
+        else:
+            command += coverLetterDirectory
+        
+        os.system(command)
         
     
     def _changeName(self):
