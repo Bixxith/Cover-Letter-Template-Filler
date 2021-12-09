@@ -1,11 +1,11 @@
 from window import MainWindow
+
 from tkinter import *
 from datetime import date
 import os
 import docx
 import comtypes.client
 import subprocess
-from tkinter import filedialog
 
 
 class CoverLetterWindow(MainWindow):
@@ -55,19 +55,20 @@ class CoverLetterWindow(MainWindow):
             self._reload()
             
     def _openFolder(self):
-        
+        dateAssign = date.today()
+        todayFolderFormat = dateAssign.strftime("%Y-%m-%d")
         coverLetterDirectory = os.path.join(os.getcwd(), "Cover Letters")
-        command = 'explorer.exe ' + coverLetterDirectory
+        coverLetterDatedDirectory = os.path.join(coverLetterDirectory, todayFolderFormat)
+        command = 'explorer.exe '
+        
+        if os.path.isdir(coverLetterDatedDirectory):
+            command += coverLetterDatedDirectory
+        else:
+            command += coverLetterDirectory
         
         os.system(command)
-
         
-        
-        
-        
-        
-        
-        
+    
     def _changeName(self):
         self._unpackUI()
         from namewindow import NameWindow
