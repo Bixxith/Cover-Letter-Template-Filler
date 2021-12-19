@@ -1,155 +1,103 @@
 from window import MainWindow
-
+from templateframe import TemplateFrame
+from optionsframe import OptionsFrame
+from variablesframe import VariablesFrame
 from tkinter import *
-from datetime import date
-import os
-import docx
-import comtypes.client
-
 
 
 class CoverLetterWindow(MainWindow):
+    
     def __init__(self):
         MainWindow.__init__(self)
+        self.templateFrame = TemplateFrame()
+        self.optionsFrame = OptionsFrame()
+        self.variablesFrame = VariablesFrame()
+
+        self.assignUI()
+        self.packUI()
+        self.templateFrame.autoLoad()
+        self.getHeaderText()
+        self.windowLoop()
+    
+    def assignUI(self):
+        btnGeneratePDF = self.optionsFrame.btnGeneratePDF
+        btnSave = self.optionsFrame.btnSave
+        btnLoad = self.optionsFrame.btnLoad
         
-        self._assignUI()
-        self._packUI()
-        self._windowLoop()
-    
-    def _assignUI(self):
-        self._nameLbl = Label(self._window, text="Your Name:")
-        self._companyNameLbl = Label(self._window, text="Enter Company Name:")
-        self._companyNameEnt = Entry(self._window)
-        self._positionLbl = Label(self._window, text="Position:")
-        self._positionEnt = Entry(self._window)
-        self._submitBtn = Button(self._window, text="Submit", command=self._processSubmit)
-        self._spacerLbl = Label(self._window)
-        self._openBtn = Button(self._window, text="Open Folder", command=self._openFolder)
-        self._renameBtn = Button(self._window, text="Change Name", command=self._changeName)
-    
-    def _packUI(self):
-        self._companyNameLbl.pack()
-        self._companyNameEnt.pack()
-        self._positionLbl.pack()
-        self._positionEnt.pack()
-        self._spacerLbl.pack()
-        self._submitBtn.pack()
-        self._openBtn.pack()
-        self._renameBtn.pack()
-    
-    def _unpackUI(self):
-        self._companyNameLbl.pack_forget()
-        self._companyNameEnt.pack_forget()
-        self._positionLbl.pack_forget()
-        self._positionEnt.pack_forget()
-        self._spacerLbl.pack_forget()
-        self._submitBtn.pack_forget()
-        self._openBtn.pack_forget()
-        self._renameBtn.pack_forget()
-    def _processSubmit(self):
-        position = self._positionEnt.get()
-        company = self._companyNameEnt.get()
+        btnSave.configure(command=self.templateFrame.manualSave)
+        btnLoad.configure(command=self.templateFrame.manualLoad)
+        btnGeneratePDF.configure(command=self.generateLetter)
         
-        if position != "" and company != "":
-            _CoverLetterGen(position, company)
-            self._reload()
+    
+    def getHeaderText(self):
+        self.optionsFrame.headerText = self.variablesFrame.getHeaderText()
+        
+    def getText(self):
+        return self.templateFrame.getText()
+        
+        
+    def replaceKeywords(self):
+        keywordDict= {'COMPANY':self.getCompany(),'DATE':self.getDate(), 'YOURNAME':self.getName(),'POSITION':self.getPosition()}
+        textField = self.getText()
+        
+        for each in keywordDict:
             
-    def _openFolder(self):
-        dateAssign = date.today()
-        todayFolderFormat = dateAssign.strftime("%Y-%m-%d")
-        coverLetterDirectory = os.path.join(os.getcwd(), "Cover Letters")
-        coverLetterDatedDirectory = os.path.join(coverLetterDirectory, todayFolderFormat)
-        command = 'explorer.exe '
+            # preserves the text surrounding the keyword in case it has new lines around it
+            slicedWord = slice(0, len(each))
+            otherHalf = slice(len(each), len(each) + len(each))
+            
+            # checks to see if string is an exact match, then checks to see if string contains the keyword and replaces it accordingly
+            for i in range(len(textField)):
+                if textField[i][slicedWord] == each:
+                    textField[i] = keywordDict[each] + textField[i][otherHalf]
+                elif each in textField[i]:
+                    index = textField[i].find(each)
+                    firstHalf = slice(0, index)
+                    secondHalf = slice(index+len(each), len(textField[i]))
+                    newString = textField[i][firstHalf] + keywordDict[each] + textField[i][secondHalf]
+                    textField[i] = newString                   
+        return ' '.join(textField)
         
-        if os.path.isdir(coverLetterDatedDirectory):
-            command += coverLetterDatedDirectory
-        else:
-            command += coverLetterDirectory
         
-        os.system(command)
+    def packUI(self):
+        self.optionsFrame.packUI()
+        self.templateFrame.packUI()
+        self.variablesFrame.packUI()
+        self.mainFrame.pack(anchor=CENTER)
         
+        
+    def generateLetter(self):
+        template = self.replaceKeywords()
+        self.optionsFrame.generateLetter(template, self.getName(), self.getCompany(),self.getPosition())
+        
+    
+    def getDate(self):
+        return self.variablesFrame.getDate()
+    
+    
+    def getName(self):
+        return self.variablesFrame.getName() 
+    
+    
+    def getPosition(self):
+        return self.variablesFrame.getPosition()
+    
+    
+    def getCompany(self):
+        return self.variablesFrame.getCompany()     
+    
     
     def _changeName(self):
         self._unpackUI()
-        from namewindow import NameWindow
+        from variablesframe import NameWindow
         NameWindow(True)
     
-    def _reload(self):
+    
+    def reload(self):
         self._unpackUI()
         self.__init__()
      
-class _GetDate():
-    def __init__(self):
-        self._dateAssign = date.today()
-        self._today = self._dateAssign.strftime("%B %d, %Y")
-        self._todayFolderFormat = self._dateAssign.strftime("%Y-%m-%d")
-        
-class _CoverLetterGen():
-    def __init__(self, position, company):
-        self._directory = os.getcwd()
-        self._date = _GetDate()
-        self._position = position
-        self._company = company
-        self._templateInserts = {"DATE":"", "POSITION":"", "COMPANY":"", "YOURNAME":""}
-        self._templateDoc = docx.Document("template.docx")
-        self._coverLetterDirectory = os.path.join(self._directory, "Cover Letters")
-        self._coverLetterDatedDirectory = os.path.join(self._coverLetterDirectory, self._date._todayFolderFormat)
-        self._createLetter()
-
-        
-    def _createLetter(self):
-        self._getYourName()
-        self._setTemplate()
-        self._setFileName()
-        self._replaceWords()
-        self._setupDirectory()
-        self._makePDF()
-
-    
-    def _getYourName(self):
-        filename = os.path.join(self._directory, "name.txt")
-        with open(filename, "r") as f:
-            contents = f.read()
-        self._yourName = contents
-    
-    def _setTemplate(self):
-        self._templateInserts["DATE"] = self._date._today
-        self._templateInserts["POSITION"] = self._position
-        self._templateInserts["COMPANY"] = self._company
-        self._templateInserts["YOURNAME"] = self._yourName
-    
-    def _setFileName(self):
-        tempFileName = self._templateInserts["YOURNAME"] + " " + self._templateInserts["COMPANY"] + " " + self._templateInserts["POSITION"] + ".pdf"
-        self._coverLetterFileName = tempFileName.replace(" ", "-")        
-        
-    def _replaceWords(self):
-        for i in self._templateInserts:
-            for t in self._templateDoc.paragraphs:
-                if t.text.find(i) >= 0:
-                    t.text = t.text.replace(i, self._templateInserts[i])
-        self._templateDoc.save("temporaryTemplate.docx")
-    
-    def _setupDirectory(self):
-        try:
-            os.mkdir(self._coverLetterDirectory)
-        except FileExistsError:
-            pass
-        try:
-            os.mkdir(self._coverLetterDatedDirectory)
-        except FileExistsError:
-            pass
-        
-    def _makePDF(self):
-        wdFormatPDF = 17
-        tempFile = os.path.join(self._directory, "temporaryTemplate.docx")
-        pdfFile = os.path.join(self._coverLetterDatedDirectory, self._coverLetterFileName)           
-        word = comtypes.client.CreateObject('Word.Application')
-        tempDoc = word.Documents.Open(tempFile)
-        
-        tempDoc.SaveAs(pdfFile, FileFormat=wdFormatPDF)
-        tempDoc.Close()
-        os.remove(tempFile)
-        word.Quit()
-        
+     
+     
 if __name__ == '__main__':
     CoverLetterWindow()

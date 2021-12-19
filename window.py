@@ -1,25 +1,28 @@
-from tkinter import *
+from tkinter import Tk, Frame
 
 
 class MainWindow():
-    _window = Tk()
+    window = Tk()
+    mainFrame = Frame(window)
     def __init__(self):
-        self._setupWindow()
+        self.setupWindow()
+        
 
-    def _setupWindow(self):
-        self._window.geometry("300x300")
-        self._window.title("Cover Letter Template Filler")
-        
+
+    def setupWindow(self):
+        self.window.geometry("1400x1000")
+        self.window.title("Cover Letter Template Filler")
+        # self.window.resizable(False, False)
         # Centers the window on the screen
-        _windowWidth = self._window.winfo_reqwidth()
-        _positionRight = int(self._window.winfo_screenwidth()/2 - _windowWidth/2)
-        _windowHeight = self._window.winfo_reqheight()
-        _positionDown = int(self._window.winfo_screenheight()/2 - _windowHeight/2)
+        # windowWidth = self.window.winfo_reqwidth()
+        # positionRight = int(self.window.winfo_screenwidth()/2 - windowWidth/2)
+        # windowHeight = self.window.winfo_reqheight()
+        # positionDown = int(self.window.winfo_screenheight()/2 - windowHeight/2)
         
-        self._window.geometry("+{}+{}".format(_positionRight, _positionDown))
+        # self.window.geometry("+{}+{}".format(positionRight, positionDown))
     
-    def _windowLoop(self):
-        self._window.mainloop()
+    def windowLoop(self):
+        self.window.mainloop()
 
 if __name__ == "__main__":
     MainWindow()    

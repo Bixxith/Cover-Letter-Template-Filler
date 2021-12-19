@@ -4,3 +4,6 @@ template.docx
 Cover Letters
 .vscode
 __pycache__
+env
+Data
+*.docx

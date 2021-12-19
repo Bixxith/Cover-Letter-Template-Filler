@@ -1,5 +1,5 @@
 from coverletterwindow import CoverLetterWindow
-from namewindow import NameWindow
+
 import os
 from os.path import exists
 
@@ -8,10 +8,8 @@ def namePathExists():
     return exists(path)
 
 def main():
-    if namePathExists():
-        CoverLetterWindow()
-    else:
-        NameWindow()
+    mainWin = CoverLetterWindow()
+
         
 
 if __name__ == '__main__':
