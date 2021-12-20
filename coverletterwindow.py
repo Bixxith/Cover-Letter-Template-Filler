@@ -73,16 +73,6 @@ class CoverLetterWindow(MainWindow):
     
     def getCompany(self):
         return self.variablesFrame.getCompany()     
-    
-    def _changeName(self):
-        self._unpackUI()
-        from variablesframe import NameWindow
-        NameWindow(True)
-    
-    def reload(self):
-        self._unpackUI()
-        self.__init__()
-         
      
 if __name__ == '__main__':
     CoverLetterWindow()

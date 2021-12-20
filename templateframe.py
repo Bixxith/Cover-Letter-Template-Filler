@@ -7,16 +7,16 @@ from window import MainWindow
 
 fontCal = tkFont.Font(name='Calibri')
 initialTemplate = """DATE
-COMPANY
-RE: POSITION
+                    COMPANY
+                    RE: POSITION
 
-To whom it may concern,
+                    To whom it may concern,
 
-This is an example cover letter template.
+                    This is an example cover letter template.
 
-Sincerely,
-YOURNAME
-"""
+                    Sincerely,
+                    YOURNAME
+                """
 
 
 class TemplateFrame(MainWindow):
@@ -42,9 +42,6 @@ class TemplateFrame(MainWindow):
         self.templateTextArea.pack(side=TOP, pady=10)
         self.frame.pack_propagate(0)
         self.frame.pack(side = LEFT, expand=False, fill=Y)
-      
-    def smallTextArea(self):
-        self.templateTextArea.configure(height=50)
     
     def highlightKeywords(self, event):
         removeWhitespace = self.templateTextArea.get("1.0", 
