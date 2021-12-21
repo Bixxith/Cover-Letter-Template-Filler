@@ -1,5 +1,6 @@
-from tkinter.constants import LEFT, BOTH, W, TOP
-from tkinter import Frame, Button, messagebox
+from tkinter.constants import CENTER, FLAT, GROOVE, LEFT, BOTH, RAISED, RIDGE, RIGHT, SOLID, SUNKEN, W, TOP
+from tkinter import READABLE, Frame, Button, messagebox, Label, Checkbutton, Radiobutton, Entry
+import tkinter.font as tkFont
 from datetime import date
 import os
 from os.path import exists
@@ -8,6 +9,8 @@ from fpdf import FPDF
 
 from window import MainWindow
 
+fontHelv = ('Helvetica 10')
+fontHelvTitle = ('Helvetica 13 underline')
 
 class OptionsFrame(MainWindow):
     
@@ -31,20 +34,62 @@ class OptionsFrame(MainWindow):
     def assignUI(self):
         self.pdfFrame = Frame(self.frame, height=100)
         self.btnOpen = Button(self.pdfFrame, text = "Open Folder", 
-                              command = self.openFolder)
+                              command = self.openFolder,
+                              bd=3, font=fontHelv)
         self.btnGeneratePDF = Button(self.pdfFrame, text = "Generate PDF", 
-                                     height=5, width=15)
-        self.saveFrame = Frame(self.frame, height=100)
-        self.btnSave = Button(self.saveFrame, text="Save Template")
-        self.btnLoad = Button(self.saveFrame, text="Load Template")
-    
+                                     height=5, width=15,
+                                     bd=3, font=fontHelv)
+        self.saveFrame = Frame(self.frame, height=100,
+                                highlightbackground='black',
+                                highlightthickness=1)
+        self.btnSave = Button(self.saveFrame, text="Save", font=fontHelv, 
+                              bd=3)
+        self.btnLoad = Button(self.saveFrame, text="Load", font=fontHelv,
+                              bd=3)
+        self.lblTemplate = Label(self.saveFrame, text="Template", 
+                            font=fontHelvTitle, )
+        self.purgeFrame = Frame(self.pdfFrame, highlightbackground='black',
+                                highlightthickness=1)
+        self.lblPurge = Label(self.purgeFrame, 
+                              text="Old Cover Letters",
+                              font=fontHelvTitle)
+        self.btnPurgeOld = Button(self.purgeFrame,
+                                  text="Purge All",
+                                  bd=3, font=fontHelv)
+        self.autoPurgeFrame = Frame(self.purgeFrame)
+        self.customPurgeFrame = Frame(self.autoPurgeFrame)
+        self.chkAutoPurge = Checkbutton(self.autoPurgeFrame, text="Auto Purge")
+        self.rdoAutoPurge7 = Radiobutton(self.autoPurgeFrame, 
+                                        text="Delete After 7 Days")
+        self.rdoAutoPurge1 = Radiobutton(self.autoPurgeFrame, 
+                                        text="Delete After 1 Day")
+        self.rdoAutoPurgeCustom = Radiobutton(self.customPurgeFrame,
+                                              text="Delete after X Days:")
+        self.entAutoPurgeCustom = Entry(self.customPurgeFrame, width=3)
+
+        
     def packUI(self):
-        self.pdfFrame.pack(side=TOP, pady=10, padx=10)
-        self.saveFrame.pack(side=TOP, pady=10, padx=10)
+        self.pdfFrame.pack(side=TOP, pady=10, padx=2)
+        self.saveFrame.pack(side=TOP, pady=10, padx=2)
+
+        
         self.btnGeneratePDF.pack(pady=10)
-        self.btnOpen.pack(padx=10, pady=10)  
-        self.btnSave.pack(padx=10)
-        self.btnLoad.pack(padx=10)
+        self.btnOpen.pack(pady=10)
+        self.lblTemplate.pack(side=TOP, pady=5)
+        self.btnSave.pack(padx=5,side=LEFT,pady=5)
+        self.btnLoad.pack(padx=5,side=LEFT,pady=5)
+        self.lblPurge.pack(side=TOP, pady=5, padx=2)
+ 
+        self.chkAutoPurge.pack(side=TOP)
+        self.rdoAutoPurge7.pack(side=TOP)
+        self.rdoAutoPurge1.pack(side=TOP)
+        self.customPurgeFrame.pack(side=TOP)
+        self.rdoAutoPurgeCustom.pack(side=LEFT)
+        self.entAutoPurgeCustom.pack(side=LEFT)
+        self.btnPurgeOld.pack(side=TOP, pady=10)
+        self.purgeFrame.pack(side=TOP, anchor=CENTER, padx=2)   
+        self.autoPurgeFrame.pack(padx=2)
+        
         self.frame.pack(anchor = W, side = LEFT, expand=True, fill=BOTH)
     
     def openFolder(self):
