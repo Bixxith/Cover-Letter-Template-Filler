@@ -5,7 +5,6 @@ from datetime import date, timedelta, datetime
 import os
 from os.path import exists
 import json
-import sys
 import shutil
 
 from fpdf import FPDF
@@ -14,6 +13,7 @@ from window import MainWindow
 
 fontHelv = ('Helvetica 10')
 fontHelvTitle = ('Helvetica 13 underline')
+
 
 class OptionsFrame(MainWindow):
     
@@ -39,6 +39,11 @@ class OptionsFrame(MainWindow):
         self.frame = Frame(self.mainFrame, width=100, height=100)
             
     def assignUI(self):
+        self.pdfElements()
+        self.purgeElements()
+        self.saveElements()
+
+    def pdfElements(self):
         self.pdfFrame = Frame(self.frame, height=100)
         self.btnOpen = Button(self.pdfFrame, text = "Open Folder", 
                               command = self.openFolder,
@@ -46,15 +51,8 @@ class OptionsFrame(MainWindow):
         self.btnGeneratePDF = Button(self.pdfFrame, text = "Generate PDF", 
                                      height=5, width=15,
                                      bd=3, font=fontHelv)
-        self.saveFrame = Frame(self.frame, height=100,
-                                highlightbackground='black',
-                                highlightthickness=1)
-        self.btnSave = Button(self.saveFrame, text="Save", font=fontHelv, 
-                              bd=3)
-        self.btnLoad = Button(self.saveFrame, text="Load", font=fontHelv,
-                              bd=3)
-        self.lblTemplate = Label(self.saveFrame, text="Template", 
-                            font=fontHelvTitle, )
+    
+    def purgeElements(self):
         self.purgeFrame = Frame(self.pdfFrame, highlightbackground='black',
                                 highlightthickness=1)
         self.lblPurge = Label(self.purgeFrame, 
@@ -62,7 +60,8 @@ class OptionsFrame(MainWindow):
                               font=fontHelvTitle)
         self.btnPurgeOld = Button(self.purgeFrame,
                                   text="Purge All",
-                                  bd=3, font=fontHelv)
+                                  bd=3, font=fontHelv,
+                                  command=self.clickedPurge)
         self.autoPurgeFrame = Frame(self.purgeFrame)
         self.customPurgeFrame = Frame(self.autoPurgeFrame)
         self.rdoVariable = IntVar()
@@ -94,8 +93,19 @@ class OptionsFrame(MainWindow):
         self.autoPurgeFrame.bind('<Leave>', self.autoPurgeSetting)
         self.entAutoPurgeCustom.bind('<Button-1>', self.clickedCustom)
         self.autoPurgeState = (False, 0)
-    
-    def toggleAutoPurgeEvent(self,event,):
+        
+    def saveElements(self):
+        self.saveFrame = Frame(self.frame, height=100,
+                                highlightbackground='black',
+                                highlightthickness=1)
+        self.btnSave = Button(self.saveFrame, text="Save", font=fontHelv, 
+                              bd=3)
+        self.btnLoad = Button(self.saveFrame, text="Load", font=fontHelv,
+                              bd=3)
+        self.lblTemplate = Label(self.saveFrame, text="Template", 
+                            font=fontHelvTitle, )
+            
+    def toggleAutoPurgeEvent(self,event):
         self.toggleAutoPurge(False)  
         
     def toggleAutoPurge(self, checked):
@@ -111,7 +121,7 @@ class OptionsFrame(MainWindow):
             self.rdoAutoPurge1.config(state=DISABLED)
             self.rdoAutoPurge7.config(state=DISABLED)
             self.rdoAutoPurgeCustom.config(state=DISABLED)
-            self.entAutoPurgeCustom.config(state=NORMAL)
+            self.entAutoPurgeCustom.config(state=DISABLED)
             self.rdoAutoPurge30.config(state=DISABLED)
             
     def autoPurgeSetting(self, event):
@@ -129,7 +139,6 @@ class OptionsFrame(MainWindow):
             self.autoPurgeState = (False, 0)
         self.saveOptions()
 
-        
     def clickedCustom(self,event):
         if self.chkVariable.get() == 1:
             self.rdoVariable.set(3)
@@ -147,7 +156,13 @@ class OptionsFrame(MainWindow):
                 for item in settings:
                     self.settings[item] = settings[item]
         self.loadPurgeSettings()
-        
+    
+    def clickedPurge(self):
+        answer = messagebox.askyesno("Are you sure?",
+                                     "Are you sure you want to delete ALL cover letters?")
+        if answer:
+            self.purgeFolders(0)
+            
     def loadPurgeSettings(self):
         purgeSettings = self.settings['AutoPurge']
         print(purgeSettings)
@@ -163,32 +178,33 @@ class OptionsFrame(MainWindow):
                 self.rdoVariable.set(3)
                 self.entVariable.set(int(purgeSettings[1]))
             self.toggleAutoPurge(True)
-            
+
     def runPurge(self):
         if self.settings['AutoPurge'][0] == True:
             purgeDays = int(self.settings['AutoPurge'][1])
-            endDate = date.today() + timedelta(days=-(purgeDays))
+            self.purgeFolders(purgeDays)
+
+    def purgeFolders(self, purgeDays):
+        endDate = date.today() + timedelta(days=-(purgeDays))
+        try:
             foldersList = os.listdir(self.coverLetterDirectory)
             for i in foldersList:
                 datedFolder = datetime.strptime(i, '%Y-%m-%d').date()
                 if endDate > datedFolder:
-                    print(f'{datedFolder} needs deleted')
                     deleteFolder = os.path.join(self.coverLetterDirectory + '\\' + i)
-                    print(deleteFolder)
                     shutil.rmtree(deleteFolder)
-
+        except:
+            pass
+        
     def packUI(self):
         self.pdfFrame.pack(side=TOP, pady=10, padx=2)
         self.saveFrame.pack(side=TOP, pady=10, padx=2)
-
-        
         self.btnGeneratePDF.pack(pady=10)
         self.btnOpen.pack(pady=10)
         self.lblTemplate.pack(side=TOP, pady=5)
         self.btnSave.pack(padx=5,side=LEFT,pady=5)
         self.btnLoad.pack(padx=5,side=LEFT,pady=5)
         self.lblPurge.pack(side=TOP, pady=5, padx=2)
- 
         self.chkAutoPurge.pack(side=TOP)
         self.rdoAutoPurge1.pack(side=TOP)
         self.rdoAutoPurge7.pack(side=TOP)
@@ -199,7 +215,6 @@ class OptionsFrame(MainWindow):
         self.btnPurgeOld.pack(side=TOP, pady=10)
         self.purgeFrame.pack(side=TOP, anchor=CENTER, padx=2)   
         self.autoPurgeFrame.pack(padx=2)
-        
         self.frame.pack(anchor = W, side = LEFT, expand=True, fill=BOTH)
     
     def openFolder(self):
