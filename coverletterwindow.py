@@ -15,6 +15,7 @@ class CoverLetterWindow(MainWindow):
         self.variablesFrame = VariablesFrame()
         self.assignUI()
         self.packUI()
+        self.variablesFrame.verifyDirectory()
         self.templateFrame.autoLoad()
         self.getHeaderText()
         self.windowLoop()

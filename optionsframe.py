@@ -1,9 +1,12 @@
-from tkinter.constants import CENTER, FLAT, GROOVE, LEFT, BOTH, RAISED, RIDGE, RIGHT, SOLID, SUNKEN, W, TOP
-from tkinter import READABLE, Frame, Button, messagebox, Label, Checkbutton, Radiobutton, Entry
+from tkinter.constants import CENTER, DISABLED, FLAT, GROOVE, LEFT, BOTH, NORMAL, RAISED, RIDGE, RIGHT, SOLID, SUNKEN, W, TOP
+from tkinter import READABLE, Frame, Button, StringVar, messagebox, Label, Checkbutton, Radiobutton, Entry, IntVar
 import tkinter.font as tkFont
-from datetime import date
+from datetime import date, timedelta, datetime
 import os
 from os.path import exists
+import json
+import sys
+import shutil
 
 from fpdf import FPDF
 
@@ -20,6 +23,10 @@ class OptionsFrame(MainWindow):
         self.assignUI()
         self.datedDirectory()
         self.headerText = ''
+        self.settings = dict()
+        self.filePath = os.path.join(os.getcwd(), "Data/settings.json")
+        self.loadOptions()
+        self.runPurge()
         
     def datedDirectory(self):
         dateAssign = date.today()
@@ -58,16 +65,118 @@ class OptionsFrame(MainWindow):
                                   bd=3, font=fontHelv)
         self.autoPurgeFrame = Frame(self.purgeFrame)
         self.customPurgeFrame = Frame(self.autoPurgeFrame)
-        self.chkAutoPurge = Checkbutton(self.autoPurgeFrame, text="Auto Purge")
+        self.rdoVariable = IntVar()
+        self.chkVariable = IntVar()
+        self.chkAutoPurge = Checkbutton(self.autoPurgeFrame,
+                                        variable=self.chkVariable, 
+                                        text="Auto Purge")
         self.rdoAutoPurge7 = Radiobutton(self.autoPurgeFrame, 
-                                        text="Delete After 7 Days")
+                                        text="Delete After 7 Days",
+                                        variable=self.rdoVariable,
+                                        value=2, state=DISABLED)
         self.rdoAutoPurge1 = Radiobutton(self.autoPurgeFrame, 
-                                        text="Delete After 1 Day")
+                                        text="Delete After 1 Day",
+                                        variable=self.rdoVariable,
+                                        value=1, state=DISABLED)
+        self.rdoAutoPurge30 = Radiobutton(self.autoPurgeFrame, 
+                                        text="Delete After 30 Days",
+                                        variable=self.rdoVariable,
+                                        value=4, state=DISABLED)
         self.rdoAutoPurgeCustom = Radiobutton(self.customPurgeFrame,
-                                              text="Delete after X Days:")
-        self.entAutoPurgeCustom = Entry(self.customPurgeFrame, width=3)
+                                              text="Delete after X Days:",
+                                              variable=self.rdoVariable,
+                                              value=3, state=DISABLED)
+        self.entVariable = StringVar()
+        self.entAutoPurgeCustom = Entry(self.customPurgeFrame, width=3,
+                                        state=DISABLED, 
+                                        textvariable=self.entVariable)
+        self.chkAutoPurge.bind('<Button-1>', self.toggleAutoPurgeEvent)
+        self.autoPurgeFrame.bind('<Leave>', self.autoPurgeSetting)
+        self.entAutoPurgeCustom.bind('<Button-1>', self.clickedCustom)
+        self.autoPurgeState = (False, 0)
+    
+    def toggleAutoPurgeEvent(self,event,):
+        self.toggleAutoPurge(False)  
+        
+    def toggleAutoPurge(self, checked):
+        if self.chkVariable.get() == checked:
+            self.rdoAutoPurge7.config(state=NORMAL)
+            self.rdoAutoPurge1.config(state=NORMAL)
+            self.rdoAutoPurgeCustom.config(state=NORMAL)
+            self.entAutoPurgeCustom.config(state=NORMAL)
+            self.rdoAutoPurge30.config(state=NORMAL)
+            if not self.rdoVariable.get():
+                self.rdoVariable.set(4)
+        else:
+            self.rdoAutoPurge1.config(state=DISABLED)
+            self.rdoAutoPurge7.config(state=DISABLED)
+            self.rdoAutoPurgeCustom.config(state=DISABLED)
+            self.entAutoPurgeCustom.config(state=NORMAL)
+            self.rdoAutoPurge30.config(state=DISABLED)
+            
+    def autoPurgeSetting(self, event):
+        setting = self.rdoVariable.get()
+        enabled = self.chkVariable.get()
+        if setting == 1 and enabled:
+            self.autoPurgeState = (True, 1)
+        elif setting == 2 and enabled:
+            self.autoPurgeState = (True, 7)
+        elif setting == 3 and enabled:
+            self.autoPurgeState = (True, int(self.entAutoPurgeCustom.get()))
+        elif setting == 4 and enabled:
+            self.autoPurgeState = (True, 30)
+        else:
+            self.autoPurgeState = (False, 0)
+        self.saveOptions()
 
         
+    def clickedCustom(self,event):
+        if self.chkVariable.get() == 1:
+            self.rdoVariable.set(3)
+                           
+    def saveOptions(self):
+        self.settings['AutoPurge'] = self.autoPurgeState
+        settingsJSON = json.dumps(self.settings)
+        with open(self.filePath, "w") as output:
+            output.write(settingsJSON)
+        
+    def loadOptions(self):
+        if exists(self.filePath):
+            with open(self.filePath) as input:
+                settings = json.load(input)
+                for item in settings:
+                    self.settings[item] = settings[item]
+        self.loadPurgeSettings()
+        
+    def loadPurgeSettings(self):
+        purgeSettings = self.settings['AutoPurge']
+        print(purgeSettings)
+        if purgeSettings[0] == True:
+            self.chkVariable.set(1)
+            if purgeSettings[1] == 1:
+                self.rdoVariable.set(1)
+            elif purgeSettings[1] == 7:
+                self.rdoVariable.set(2)
+            elif purgeSettings[1] == 30:
+                self.rdoVariable.set(4)
+            else:
+                self.rdoVariable.set(3)
+                self.entVariable.set(int(purgeSettings[1]))
+            self.toggleAutoPurge(True)
+            
+    def runPurge(self):
+        if self.settings['AutoPurge'][0] == True:
+            purgeDays = int(self.settings['AutoPurge'][1])
+            endDate = date.today() + timedelta(days=-(purgeDays))
+            foldersList = os.listdir(self.coverLetterDirectory)
+            for i in foldersList:
+                datedFolder = datetime.strptime(i, '%Y-%m-%d').date()
+                if endDate > datedFolder:
+                    print(f'{datedFolder} needs deleted')
+                    deleteFolder = os.path.join(self.coverLetterDirectory + '\\' + i)
+                    print(deleteFolder)
+                    shutil.rmtree(deleteFolder)
+
     def packUI(self):
         self.pdfFrame.pack(side=TOP, pady=10, padx=2)
         self.saveFrame.pack(side=TOP, pady=10, padx=2)
@@ -81,8 +190,9 @@ class OptionsFrame(MainWindow):
         self.lblPurge.pack(side=TOP, pady=5, padx=2)
  
         self.chkAutoPurge.pack(side=TOP)
-        self.rdoAutoPurge7.pack(side=TOP)
         self.rdoAutoPurge1.pack(side=TOP)
+        self.rdoAutoPurge7.pack(side=TOP)
+        self.rdoAutoPurge30.pack(side=TOP)
         self.customPurgeFrame.pack(side=TOP)
         self.rdoAutoPurgeCustom.pack(side=LEFT)
         self.entAutoPurgeCustom.pack(side=LEFT)
