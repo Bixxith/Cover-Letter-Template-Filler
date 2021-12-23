@@ -165,7 +165,6 @@ class OptionsFrame(MainWindow):
             
     def loadPurgeSettings(self):
         purgeSettings = self.settings['AutoPurge']
-        print(purgeSettings)
         if purgeSettings[0] == True:
             self.chkVariable.set(1)
             if purgeSettings[1] == 1:
@@ -252,6 +251,7 @@ class OptionsFrame(MainWindow):
         pdfFileName = pdfFileNameTemp.replace(' ', '-')
         pdfDirectory = os.path.join(pdfdirectoryTemp, pdfFileName)
         pdf.add_page()
+        pdf.add_font('Helvetica', '', 'Helvetica.ttf', True)
         pdf.set_font('Helvetica', style='I', size=25)
         pdf.set_draw_color(r=0, g=158, b=255)
         pdf.set_line_width(width = .5)

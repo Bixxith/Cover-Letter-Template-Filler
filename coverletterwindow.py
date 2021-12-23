@@ -19,7 +19,7 @@ class CoverLetterWindow(MainWindow):
         self.templateFrame.autoLoad()
         self.getHeaderText()
         self.windowLoop()
-    
+
     def assignUI(self):
         btnGeneratePDF = self.optionsFrame.btnGeneratePDF
         btnSave = self.optionsFrame.btnSave
@@ -27,7 +27,7 @@ class CoverLetterWindow(MainWindow):
         btnSave.configure(command=self.templateFrame.manualSave)
         btnLoad.configure(command=self.templateFrame.manualLoad)
         btnGeneratePDF.configure(command=self.generateLetter)
-        
+  
     def getHeaderText(self):
         self.optionsFrame.headerText = self.variablesFrame.getHeaderText()
         
