@@ -26,7 +26,7 @@ class TemplateFrame(MainWindow):
         self.assignUI()
         self.templateDictionary = {'DATE':'', 'COMPANY':'', 
                                    'POSITION':'', 'YOURNAME':''}
-        self.highlightKeywords()
+
     def assignUI(self):
         self.frame = Frame(self.mainFrame, height=1000, width=1000)
         self.templateTextArea = Text(self.frame, height = 50, width = 100, 

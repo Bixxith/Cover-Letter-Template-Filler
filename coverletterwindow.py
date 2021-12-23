@@ -19,6 +19,7 @@ class CoverLetterWindow(MainWindow):
         self.variablesFrame.verifyDirectory()
         self.templateFrame.autoLoad()
         self.getHeaderText()
+        self.templateFrame.highlightKeywords()
         self.windowLoop()
 
     def assignUI(self):
