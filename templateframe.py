@@ -1,4 +1,4 @@
-from tkinter import Text, Frame
+from tkinter import Text, Frame, IntVar
 from tkinter.constants import LEFT, TOP, Y, END
 import tkinter.font as tkFont
 from os.path import exists
@@ -26,7 +26,7 @@ class TemplateFrame(MainWindow):
         self.assignUI()
         self.templateDictionary = {'DATE':'', 'COMPANY':'', 
                                    'POSITION':'', 'YOURNAME':''}
-        
+        self.highlightKeywords()
     def assignUI(self):
         self.frame = Frame(self.mainFrame, height=1000, width=1000)
         self.templateTextArea = Text(self.frame, height = 50, width = 100, 
@@ -35,7 +35,7 @@ class TemplateFrame(MainWindow):
                                      highlightbackground='black', 
                                      highlightthickness=1)
         
-        self.templateTextArea.bind('<Key>', self.highlightKeywords)
+        self.templateTextArea.bind('<Key>', self.highlightKeywordsClicked)
         self.templateTextArea.bind('<FocusOut>', self.autoSave)
          
     def packUI(self):
@@ -43,25 +43,32 @@ class TemplateFrame(MainWindow):
         self.frame.pack_propagate(0)
         self.frame.pack(side = LEFT, expand=False, fill=Y)
     
-    def highlightKeywords(self, event):
-        removeWhitespace = self.templateTextArea.get("1.0", 
-                                                     END).replace('\n', ' ')
-        textToHighlight = [word.strip(',.!?') for word in removeWhitespace.split(' ')]
-        currentIndex = 1.0
-        for i in range(len(textToHighlight)):
-            if textToHighlight[i] in self.templateDictionary:
-                word = textToHighlight[i]
-                wordStart = self.templateTextArea.search(word, 
-                                                         currentIndex, END)
-                wordEnd = self.templateTextArea.search(' ',
-                                                       wordStart, END)
-                self.templateTextArea.tag_add('highlight', 
-                                              wordStart, wordEnd )
-                self.templateTextArea.tag_configure('highlight', 
-                                                    background='yellow')
-                self.templateTextArea.update()
-                currentIndex = wordEnd
-    
+    def highlightKeywordsClicked(self,event):
+        self.highlightKeywords()
+        
+    def highlightKeywords(self):
+        for items in self.templateDictionary:
+            self.highlightKeywordsTagger(items)
+            
+    def highlightKeywordsTagger(self, pattern, start="1.0",end="end"):
+        textBox = self.templateTextArea
+        start = textBox.index(start)
+        end = textBox.index(end)
+        textBox.mark_set("matchStart", start)
+        textBox.mark_set("matchEnd", start)
+        textBox.mark_set("searchLimit", end)
+        textBox.tag_configure("yellow", background="#FFFF00")
+        count = IntVar()
+        while True:
+            index = textBox.search(pattern, "matchEnd",
+                                "searchLimit", count=count, 
+                                regexp=True)
+            if index == "": break
+            if count.get() == 0: break
+            textBox.mark_set("matchStart", index)
+            textBox.mark_set("matchEnd", "%s+%sc" % (index, count.get()))
+            textBox.tag_add("yellow", "matchStart", "matchEnd")
+        
     def getText(self):
         text = self.templateTextArea.get("1.0", END)
         textField = [word for word in text.split(' ')]
