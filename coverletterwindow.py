@@ -1,4 +1,5 @@
 from tkinter import *
+import re
 
 from window import MainWindow
 from templateframe import TemplateFrame
@@ -35,23 +36,16 @@ class CoverLetterWindow(MainWindow):
         return self.templateFrame.getText()
            
     def replaceKeywords(self):
-        keywordDict= {'COMPANY':self.getCompany(),'DATE':self.getDate(), 
-                      'YOURNAME':self.getName(),'POSITION':self.getPosition()}
-        textField = self.getText()    
-        for each in keywordDict:
-            slicedWord = slice(0, len(each))
-            otherHalf = slice(len(each), len(each) + len(each))
-            for i in range(len(textField)):
-                if textField[i][slicedWord] == each:
-                    textField[i] = keywordDict[each] + textField[i][otherHalf]
-                elif each in textField[i]:
-                    index = textField[i].find(each)
-                    firstHalf = slice(0, index)
-                    secondHalf = slice(index+len(each), len(textField[i]))
-                    newString = textField[i][firstHalf] + keywordDict[each] + textField[i][secondHalf]
-                    textField[i] = newString                   
-        return ' '.join(textField)
-          
+        keywordDict= {'COMPANY':(self.getCompany(), "COMPANY"),
+                      'DATE':(self.getDate(), "DATE"),
+                      'YOURNAME':(self.getName(), "YOURNAME"),
+                      'POSITION':(self.getPosition(), "POSITION")}
+        rawText = self.getText()
+        textField = ' '.join(rawText)
+        for items in keywordDict.values():
+            textField = re.sub(items[1], items[0], textField)
+        return(textField)
+
     def packUI(self):
         self.optionsFrame.packUI()
         self.templateFrame.packUI()
